@@ -9,6 +9,6 @@
  * Содержит константы, в которых хранится информация, используемая классами PeopleDB и PeopleList для подключения к БД.
  */
 
-const DB_HOSTNAME = 'localhost';
-const DB_USERNAME = 'root';
-const DB_PASSWORD = 'Kraujze2024';
+const DB_HOSTNAME = ' '; // Example: localhost
+const DB_USERNAME = ' '; // Example: root
+const DB_PASSWORD = ' '; // Example: Greatpassword456

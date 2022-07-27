@@ -4,7 +4,7 @@
  *
  * Дата реализации: 27.07.2022 15:27
  *
- * Дата изменения: 28.07.2022 19:00
+ * Дата изменения: 28.07.2022 19:56
  *
  * Содержит класс для работы с базой данных людей, а также содержащий некоторые статические методы конвертации
  */
@@ -44,8 +44,8 @@ class PeopleDB
      * 3) Если каких-то параметров не хватает для п. (2), конструктор генерирует исключение RuntimeException.
      * Для сценариев (1) и (2) проводится валидация используемых данных.
      */
-    public function __construct(string $id, string $name = '', string $surname = '',
-        string $birth_date = '', string $gender = '-1', string $birth_city = ''
+    public function __construct(string $id, string $name = null, string $surname = null,
+        string $birth_date = null, int $gender = null, string $birth_city = null
     ) {
         $errors = [];
         $args_count = func_num_args();
@@ -53,12 +53,12 @@ class PeopleDB
             case 1:
                 $connect = new mysqli(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD);
                 if ($connect->connect_error) {
-                    throw new \RuntimeException('PeopleDB: Ошибка соединения: ' . $connect->connect_error);
+                    throw new RuntimeException('PeopleDB: Ошибка соединения: ' . $connect->connect_error);
                 }
 
                 // Валидация `id`: только целые числа
                 if (preg_match("/\D/", $id)) {
-                    $errors[] = "Ошибка валидации: значение `id` должен быть целочисленного вида;\n";
+                    $errors[] = "Ошибка валидации: значение `id` должен быть целочисленного вида и больше нуля;\n";
                     break;
                 }
 
@@ -87,7 +87,7 @@ class PeopleDB
             case 6:
                 // Валидация `id`: только целые числа
                 if (preg_match("/\D/", $id)) {
-                    $errors[] = "Ошибка валидации: значение `id` должен быть целочисленного вида;\n";
+                    $errors[] = "Ошибка валидации: значение `id` должен быть целочисленного вида и больше нуля;\n";
                 }
 
                 // Валидация `name`: кириллица и латиница
@@ -114,7 +114,7 @@ class PeopleDB
                 }
 
                 // Валидация `gender`: значение 0 или 1
-                if ($gender !== "0" && $gender !== "1") {
+                if ($gender !== 0 && $gender !== 1) {
                     $errors[] = "Ошибка валидации: значение `gender` должно быть 0 или 1;\n";
                 }
 
@@ -151,7 +151,11 @@ class PeopleDB
         }
     }
 
-    public function deleteData()
+    /*
+     * Удаляет запись из БД в соответствии с полем id объекта.
+     * Возвращает true/false в зависимости от успеха.
+     */
+    public function deleteData(): bool
     {
         try {
             $connect = new mysqli(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD);
@@ -174,7 +178,7 @@ class PeopleDB
         return false;
     }
 
-    public function saveData()
+    public function saveData(): void
     {
         $connect = new mysqli(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD);
 
@@ -190,12 +194,12 @@ class PeopleDB
         $connect->close();
     }
 
-    public static function convertAge(string $birth_date)
+    public static function convertBirthDate(string $birth_date): int
     {
         return (new DateTime($birth_date))->diff(new DateTime())->y;
     }
 
-    public static function convertGender(int $gender)
+    public static function convertGender(int $gender): string
     {
         return $gender === 0 ? 'муж' : 'жен';
     }
@@ -206,7 +210,7 @@ class PeopleDB
      * $format_age = true - включить в генерируемый экземпляр stdClass поле `age`.
      * $format_gender = true - включить в генерируемый экземпляр stdClass поле `gender_str`.
      */
-    public function getFormatted(bool $format_age = false, bool $format_gender = false)
+    public function getFormatted(bool $format_age = false, bool $format_gender = false): stdClass
     {
         $formatted = new stdClass;
 
@@ -218,7 +222,7 @@ class PeopleDB
         $formatted->_birth_city = $this->_birth_city;
 
         if ($format_age) {
-            $formatted->age = self::convertAge($formatted->_birth_date);
+            $formatted->age = self::convertBirthDate($formatted->_birth_date);
         }
 
         if ($format_gender) {
